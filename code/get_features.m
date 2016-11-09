@@ -1,7 +1,8 @@
-function f = feat_extractor(frame,box,net)
+function f = get_features(frame,detections,net)
 %% extract the CNN features (using VGG model)
 
-% Resize images and box to be compatible with the network.
+% Resize images and detections to be compatible with the network.
+frame=single(frame);
 imageSize = size(frame) ;
 fullImageSize = net.meta.normalization.imageSize(1) ...
     / net.meta.normalization.cropSize ;
@@ -11,10 +12,12 @@ imNorm = imresize(frame, scale, ...
               'antialiasing', false) ;
 imNorm = bsxfun(@minus, imNorm, net.meta.normalization.averageImage) ;
 
-box=single([box(:,[1,2]) box(:,[1,2])+box(:,[3,4])]')+1;
-box = bsxfun(@times, box - 1, scale) + 1 ;
-roi=[ones(1,size(box,2)) ; box];
+boxes=single([detections(:,[4,5]) detections(:,[4,5])+detections(:,[6,7])]')+1;
+boxes = bsxfun(@times, boxes - 1, scale) + 1 ;
+roi=[detections(:,3)' ; boxes];
 % obtain the CNN otuput
 net.conserveMemory = 0; 
 net.eval({'data', imNorm, 'rois',roi}) ;
-f = squeeze(gather(net.vars(net.getVarIndex('fc7x')).value)) ;        
+f = squeeze(gather(net.vars(net.getVarIndex('fc7x')).value)) ; 
+f=f';
+
