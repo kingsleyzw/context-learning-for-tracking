@@ -18,6 +18,7 @@ net = dagnn.DagNN.loadobj(net);
 net.mode = 'test' ; 
 % -------------------------
 idf=0;
+track=[];% for trajectory of tracking target
 feature_set=cell([],4); % for features of detections in 4 cameras 
 % load image 
 for k = 1 : num
@@ -33,21 +34,20 @@ for k = 1 : num
             %initialize the cam and position of target
             if k==1&&~isempty(find(cam{i}(x{i},3)==idf, 1))
                 init=cam{i}(1,:);
+                track=init;
             end  
         end
                           
     end
-    % tracking
-    if k==1 % single camera racking
-        res=single_camera_tracker( frame{init(1)} , init );
-    else if ~isempty(find(cam{init(1)}(x{init(1)},3)==idf, 1))% target remains in original camera
-             res=single_camera_tracker( frame{init(1)} , res );
-        else % inter camera tracking
-             res=inter_camera_tracker();
-             init=res;
-        end
-    end
-    
+    %% tracking
+    %single camera tracking
+    if ~isempty(find(cam{init(1)}(x{init(1)},3)==idf, 1))% target remains in original camera
+        res=single_camera_tracker( frame{init(1)} , res );
+    else % inter camera tracking
+         res=inter_camera_tracker();
+         init=res;
+    end    
+    track=[track;res];
     %-------------------------------------------
     % show detection
      disp_results
