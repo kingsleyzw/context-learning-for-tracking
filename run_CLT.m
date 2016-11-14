@@ -18,37 +18,53 @@ net = dagnn.DagNN.loadobj(net);
 net.mode = 'test' ; 
 % -------------------------
 idf=0;
-track=[];% for trajectory of tracking target
-feature_set=cell([],4); % for features of detections in 4 cameras 
+id_feat=[];
+track=[];
+non_init=true;
+appear=false;
+%struct for gt and  features of detections in 4 cameras 
+for i=1:4
+    data{i}=struct('gt',cam{i},'feature_set',[]);
+end
 % load image 
 for k = 1 : num
     x=cell([],4);
     for i=1:4
         frame{i}= read(v{i},k); 
-        x{i}=find(cam{i}(:,2)==k-1);% find whether there are detections in single frame
+        x{i}=find(data{i}.gt(:,2)==k-1);% find whether there are detections in single frame
         if ~isempty(x{i})
-            detections=cam{i}(x{i},:);
+            detections=data{i}.gt(x{i},:);
             % extract the CNN features (using VGG model)
             f=get_features(frame{i},detections,net);
-            feature_set{i}(x{i},:)=f;
-            %initialize the cam and position of target
-            if k==1&&~isempty(find(cam{i}(x{i},3)==idf, 1))
-                init=cam{i}(1,:);
-                track=init;
+            data{i}.feature_set(x{i},:)=f;            
+            p=find(detections(:,3)==idf, 1);
+            if ~isempty(p)
+                if non_init  %initialize the cam and position of target
+                    res=detections(find(detections(:,3)==idf, 1),:);
+                    non_init=false;
+                    appear=true;
+                end
+                id_feat=[id_feat;f(p,:)];
+                id_feat_mean=sum(id_feat,1)/size(id_feat,1);
             end  
-        end
-                          
+        end                          
     end
-    %% tracking
-    %single camera tracking
-    if ~isempty(find(cam{init(1)}(x{init(1)},3)==idf, 1))% target remains in original camera
-        res=single_camera_tracker( frame{init(1)} , res );
-    else % inter camera tracking
-         res=inter_camera_tracker();
-         init=res;
-    end    
+     % tracking
+     if non_init
+         go to disp_result
+     else
+         if appear
+            [appear, res]=single_camera_tracker(data,res,idf,x);           
+        else 
+            [appear, res]=inter_camera_tracker(data,x,id_feat_mean);
+        end
+     end    
     track=[track;res];
-    %-------------------------------------------
-    % show detection
-     disp_results
+    -------------------------------------------
+    show detection
+     disp_results    
+
+end
+    
+    
 end
