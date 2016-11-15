@@ -18,9 +18,9 @@ for idP = 0: 1: numP
     
     % train tracker: extract CNN reference feature
     img      = read(v{active_c}, start_f); 
-    bbox     = cam{active_c}(start_f, :);
+    bbox     = get_bbox(cam{active_c}(start_f, :));
     feat_ref = get_features(img, bbox, net);
-    
+ 
     % tracking
     idf = start_f + 1;
     while idf < v{active_c}.NumberOfFrames
@@ -28,11 +28,14 @@ for idP = 0: 1: numP
         % read detections
         if flag_single
             % read detections from one camera
+            x=  cam{active_c}(:,2)==idf-1;
+            detections =get_bbox(cam{active_c}(x,:));
+            
         else
             % read detections from all cameras
-            
-        end         
-        
+            x=  det(:,2)==idf-1;
+            detections =get_bbox(det(x,:));
+        end                 
         % extract CNN features
         
         % matching
