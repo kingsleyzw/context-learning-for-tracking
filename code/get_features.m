@@ -12,7 +12,7 @@ imNorm = imresize(frame, scale, ...
               'antialiasing', false) ;
 imNorm = bsxfun(@minus, imNorm, net.meta.normalization.averageImage) ;
 
-boxes=single([detections(:,[4,5]) detections(:,[4,5])+detections(:,[6,7])]')+1;
+boxes=single(detections')+1;
 boxes = bsxfun(@times, boxes - 1, scale) + 1 ;
 roi=[detections(:,3)' ; boxes];
 % obtain the CNN otuput

@@ -31,4 +31,4 @@ net = dagnn.DagNN.loadobj(net);
 net.mode = 'test' ; 
 
 % init parameters
-flag_single = 1; % 0 : multi-cameras; 1 : single-camera
+flag_single = 0; % 0 : multi-cameras; 1 : single-camera
