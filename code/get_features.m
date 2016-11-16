@@ -1,13 +1,13 @@
-function f = get_features(frame, detections, net)
+function f = get_features(images, detections, net)
 %% extract the CNN features (using VGG model)
 
 % Resize images and detections to be compatible with the network.
-frame = single(frame);
-imageSize = size(frame) ;
+images = single(images);
+imageSize = size(images) ;
 fullImageSize = net.meta.normalization.imageSize(1) ...
     / net.meta.normalization.cropSize ;
 scale = max(fullImageSize ./ imageSize(1:2)) ;
-imNorm = imresize(frame, scale, ...
+imNorm = imresize(images, scale, ...
               net.meta.normalization.interpolation, ...
               'antialiasing', false) ;
 imNorm = bsxfun(@minus, imNorm, net.meta.normalization.averageImage) ;

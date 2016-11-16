@@ -7,38 +7,49 @@ function run_CLT()
 warning off
 addpath(genpath('./'))
 init_tracker
-
+traj=[];% for the whole trajectory of the target
 % train tracker at 1st frame
 for idp = 0: 1: numP
     
     % read pedestrian detection
     ids      = find(det(:, 3) == idp);  
     active_c = det(ids(1), 1);        % active camera
-    start_f  = det(ids(1), 2) + 1;    % starting frame
+    start_f  = det(ids(1), 2);    % starting frame
     
     % train tracker: extract CNN reference feature
-    img      = read(v{active_c}, start_f); 
-    bbox     = get_bbox(cam{active_c}(start_f, :));
-    feat_ref = get_features(img, bbox, net);
+    img      = read(v{active_c}, start_f + 1); 
+    bbox     = get_bbox(det(ids(1), :));
+    feat_ref = get_features(img, bbox{active_c}, net);
  
     % tracking
     idf = start_f + 1;
-    while idf < v{active_c}.NumberOfFrames
-        
+    while idf < v{active_c}.NumberOfFrames-1
+        feat_obs=[];
+        % read images from all cameras 
+        for i=1:4
+           images{i} = read(v{i}, idf + 1); 
+        end
         % read detections
         if flag_single
             % read detections from one camera
-            x = cam{active_c}(:,2) == idf;
-            detections = get_bbox(cam{active_c}(x,:));            
+            index = find(cam{active_c}(:,2) == idf);
+            bboxes = get_bbox(cam{active_c}(index,:));
+            % extract CNN features from detections
+            feat_obs = get_features(images{active_c}, bboxes{active_c}, net); 
         else
             % read detections from all cameras
-            x = det(:,2) == idf;
-            detections = get_bbox(det(x,:));
+            index = find(det(:,2) == idf);
+            bboxes = get_bbox(det(index,:));
+            % extract CNN features from detections
+            for i=1:4
+                if ~isempty(bboxes{i})
+                     f= get_features(images{i}, bboxes{i}, net); 
+                     feat_obs = [feat_obs ;f];
+                end               
+            end
         end                 
         
-        % extract CNN features from detections
-        feat_obs = get_features(img, detections, net); 
-        
+   
         % matching Bhattacharyya distance
         scores = sum(sqrt(feat_obs.*repmat(feat_ref, size(feat_obs, 1), 1))');
         
@@ -48,12 +59,12 @@ for idp = 0: 1: numP
                 % target disappears
                 flag_single = 0;                 
                 %----------------------------
-                %  save as rest = [] or nan
+                rest = [];
                 %----------------------------    
             else
                 [~, idt] = max(scores);
                 %-------------------------
-                %  save as rest = XXXX
+                rest = cam{active_c}(index(idt),:);
                 %-------------------------                
             end
         else
@@ -61,19 +72,20 @@ for idp = 0: 1: numP
                 % target re-appears
                 flag_single = 1;
                 [~, idt]    = max(scores);
-                active_c    = x(idt, 1);
+                active_c    = det(index(idt),1);
                 %-------------------------
-                %  save as rest = XXXX
+                rest = det(index(idt),:);
                 %-------------------------         
             else
                 %----------------------------
-                %  save as rest = [] or nan
+                rest = [];
                 %----------------------------       
             end            
         end    
         idf = idf + 1;
+        traj=[traj;rest];
     end
     %------------------------------------------
-    % save results of pedestrains in to *.mat 
+    save(['./results/' num2str(idp) '_results'],'traj'); 
     %------------------------------------------
 end
