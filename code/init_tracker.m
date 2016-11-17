@@ -1,13 +1,13 @@
 %% initialise the tracker
 
 % load videos
-v{1}=VideoReader('../CLTdataset/dataset3-4cameras/Cam1.avi');
-v{2}=VideoReader('../CLTdataset/dataset3-4cameras/Cam2.avi');
-v{3}=VideoReader('../CLTdataset/dataset3-4cameras/Cam3.avi');
-v{4}=VideoReader('../CLTdataset/dataset3-4cameras/Cam4.avi');
+v{1} = VideoReader('../CLTdataset/dataset3-4cameras/Cam1.avi');
+v{2} = VideoReader('../CLTdataset/dataset3-4cameras/Cam2.avi');
+v{3} = VideoReader('../CLTdataset/dataset3-4cameras/Cam3.avi');
+v{4} = VideoReader('../CLTdataset/dataset3-4cameras/Cam4.avi');
 
 % load annotations
-annotation_path='../CLTdataset/annotation_files/annotation/Dataset3/at least 4/';
+annotation_path  = '../CLTdataset/annotation_files/annotation/Dataset3/at least 4/';
 annotation_files = dir([annotation_path '*.mat']);
 
 %load cameras' detection
@@ -26,11 +26,14 @@ vl_setupnn()
 opts.modelPath = fullfile(fileparts(mfilename('fullpath')), ...
 '../..', 'models', 'fast-rcnn-vgg16-pascal07-dagnn.mat') ;
 opts.gpu = [] ;
-net = load(opts.modelPath) ;
-net = dagnn.DagNN.loadobj(net);
+net      = load(opts.modelPath) ;
+net      = dagnn.DagNN.loadobj(net);
 net.mode = 'test' ; 
 
 % init parameters
-flag_single = 1; % 0 : multi-cameras; 1 : single-camera
+flag_single   = 1;   % 0 : multi-cameras; 1 : single-camera
+en_GPU        = 1;   % 0 : using CPU; 1: using GPU
 thresh_single = 400; % threshold: disappear in single camera
 thresh_multi  = 500; % threshold: reappear in another camera
+
+traj = [];% for the whole trajectory of the target
