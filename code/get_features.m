@@ -11,7 +11,7 @@ imNorm = imresize(images, scale, ...
               net.meta.normalization.interpolation, ...
               'antialiasing', false) ;
 imNorm = bsxfun(@minus, imNorm, net.meta.normalization.averageImage) ;
-
+%obtain the rois of the structure in fast rcnn
 boxes = single(detections')+1;
 boxes = bsxfun(@times, boxes - 1, scale) + 1 ;
 roi=[detections(:,3)' ; boxes];
