@@ -85,7 +85,8 @@ for idp = 0: 1: numP
         idf = idf + 1;
         traj=[traj;rest];
     end
-    %------------------------------------------
+    %-save results------------------------------
     save(['./results/' num2str(idp) '_results'],'traj'); 
-    %------------------------------------------
+    %-performance evaluation--------------------
+    [precision, recall]=per_eval(det,traj,idp);
 end
