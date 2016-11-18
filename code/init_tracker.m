@@ -24,11 +24,9 @@ numP     = max(org_det(:, 3)); % number of pedestrian
 % load fast VGG
 vl_setupnn()
 opts.modelPath = fullfile(fileparts(mfilename('fullpath')), ...
-'../..', 'models', 'imagenet-vgg-f.mat') ;
+'../..', 'models', 'fast-rcnn-vgg16-pascal07-dagnn.mat') ;
 opts.gpu = [] ;
 net      = load(opts.modelPath) ;
-net = vl_simplenn_tidy(net);
-net = dagnn.DagNN.fromSimpleNN(net, 'canonicalNames', true) ;
 net      = dagnn.DagNN.loadobj(net);
 net.mode = 'test' ; 
 
