@@ -12,12 +12,13 @@ imNorm = imresize(images, scale, ...
               'antialiasing', false) ;
 imNorm = bsxfun(@minus, imNorm, net.meta.normalization.averageImage) ;
 
-boxes=single(detections')+1;
+boxes = single(detections')+1;
 boxes = bsxfun(@times, boxes - 1, scale) + 1 ;
 roi=[detections(:,3)' ; boxes];
+
 % obtain the CNN otuput
 net.conserveMemory = 0; 
 net.eval({'data', imNorm, 'rois',roi}) ;
 f = squeeze(gather(net.vars(net.getVarIndex('fc7x')).value)) ; 
-f=f';
+f = f';
 
