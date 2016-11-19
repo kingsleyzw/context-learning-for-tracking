@@ -1,24 +1,16 @@
 function f = get_features(images, detections, net)
 %% extract the CNN features (using VGG model)
-
-% Resize images and detections to be compatible with the network.
+f=[];
 images = single(images);
-imageSize = size(images) ;
-fullImageSize = net.meta.normalization.imageSize(1) ...
-    / net.meta.normalization.cropSize ;
-scale = max(fullImageSize ./ imageSize(1:2)) ;
-imNorm = imresize(images, scale, ...
-              net.meta.normalization.interpolation, ...
-              'antialiasing', false) ;
-imNorm = bsxfun(@minus, imNorm, net.meta.normalization.averageImage) ;
-%obtain the rois of the structure in fast rcnn
-boxes = single(detections')+1;
-boxes = bsxfun(@times, boxes - 1, scale) + 1 ;
-roi=[detections(:,3)' ; boxes];
+%obtain the rois & CNN features
+for i=1:size(detections,1)
+    rois=imcrop(images,detections(i,:));
+    rois = imresize(rois, net.meta.normalization.imageSize(1:2),'method',net.meta.normalization.interpolation) ;
+    rois = bsxfun(@minus, rois, net.meta.normalization.averageImage) ;
 
-% obtain the CNN otuput
-net.conserveMemory = 0; 
-net.eval({'data', imNorm, 'rois',roi}) ;
-f = squeeze(gather(net.vars(net.getVarIndex('fc7x')).value)) ; 
-f = f';
-
+    % obtain the CNN otuput
+    net.conserveMemory = 0; 
+    net.eval({'input',rois}) ;
+    f_rois = squeeze(squeeze(gather(net.vars(net.getVarIndex('x17')).value))) ; 
+    f = [f;f_rois'];
+end

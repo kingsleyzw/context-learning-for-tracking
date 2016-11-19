@@ -7,9 +7,14 @@ function run_CLT()
 warning off
 addpath(genpath('./'))
 init_tracker
+performance=[]; % for the whole performance of all targets
 % train tracker at 1st frame
-for idp = 0: 1: numP
-    
+for idp = 10: 1: numP
+    traj = [];% for the whole trajectory of the target
+    resultPath=['./results/' num2str(idp) '_results.mat'];
+    if exist(resultPath,'file')
+       continue; 
+    end
     % read pedestrian detection
     ids      = find(det(:, 3) == idp);  
     active_c = det(ids(1), 1);    % active camera
@@ -22,31 +27,48 @@ for idp = 0: 1: numP
  
     % tracking
     idf = start_f + 1;
+    flag_single=1;
     while idf < v{active_c}.NumberOfFrames-1
-        feat_obs = [];
-        
+        feat_obs = [];        
         % read detections & extract cnn featues
         if flag_single
             % detections & features from one camera
-            images   = read(v{active_c}, idf + 1); 
-            index    = find(cam{active_c}(:,2) == idf);
-            bboxes   = get_bbox(cam{active_c}(index,:));            
-            feat_obs = get_features(images, bboxes{active_c}, net); 
+            index    = find(cam{active_c}(:,2) == idf);           
+            if ~isempty(index)
+                bboxes   = get_bbox(cam{active_c}(index,:));
+                image   = read(v{active_c}, idf + 1);                        
+               feat_obs = get_features(image, bboxes{active_c}, net);
+            else
+                flag_single=0;
+                scores = 0;
+            end
+            
         else
             % detections & features from all cameras
             index = find(det(:,2) == idf);
-            bboxes = get_bbox(det(index,:));
-            for i = 1: 4
-                if ~isempty(bboxes{i})        
-                    images{i} = read(v{i}, idf + 1); 
-                    f         = get_features(images{i}, bboxes{i}, net); 
-                    feat_obs  = [feat_obs ;f];
-                end               
+            if ~isempty(index)
+                bboxes = get_bbox(det(index,:));
+                for i = 1: 4
+                    if ~isempty(bboxes{i})        
+                        images{i} = read(v{i}, idf + 1); 
+                        f         = get_features(images{i}, bboxes{i}, net); 
+                        feat_obs  = [feat_obs ;f];
+                    end               
+                end
+            else
+                flag_single=0;
+                scores = 0;
             end
+            
         end                 
    
         % matching Bhattacharyya distance
-        scores = sum(sqrt(feat_obs.*repmat(feat_ref, size(feat_obs, 1), 1))');
+%         scores = sum(sqrt(feat_obs.*repmat(feat_ref, size(feat_obs, 1), 1))');
+%         scores = pdist2(feat_obs,feat_ref,'mahalanobis');
+        if ~isempty(feat_obs)
+            scores = sum(sqrt(feat_obs.*repmat(feat_ref, size(feat_obs, 1), 1))');
+%             scores = 1-pdist2(feat_obs,feat_ref,'correlation');
+        end        
         
         % find target id
         if flag_single            
@@ -71,7 +93,12 @@ for idp = 0: 1: numP
         end    
         idf  = idf + 1;
         traj = [traj; rest];
-    end 
-    save(['./results/' num2str(idp) '_results'],'traj');  % save results
-    [precision, recall] = per_eval(det, traj, idp);       % performance evluation
+        fprintf('%d:%d\n', idp, idf) ;
+       
+    end
+    [precision, recall, F1_score] = per_eval(det, traj, idp); % performance evluation
+    save(resultPath,'traj');  % save results 
+    performance=[performance ; precision recall F1_score];    
 end
+save(['./results/performance'],'performance');
+
