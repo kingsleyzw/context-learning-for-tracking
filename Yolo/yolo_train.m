@@ -18,7 +18,7 @@ opts.train.continue = true ;
 opts.train.learningRate = 1e-2 * [ones(1,75), 0.1*ones(1,30), 0.01*ones(1,30)];
 opts.train.numEpochs = 135 ;
 opts.train.weightDecay = 0.0005 ;
-opts.train.derOutputs = {'losscoord', 1, 'losscls', 1} ;
+opts.train.derOutputs = {'yololoss', 1} ;
 opts.train.expDir = opts.expDir ;
 opts.numFetchThreads = 12 ;
 opts.lite = false ;
@@ -39,9 +39,25 @@ else
   if ~exist(opts.expDir,'dir')
     mkdir(opts.expDir);
   end
-  imdb = yolo_setup_data('dataDir', opts.dataDir, 'lite', opts.lite) ;
+  imdb = yolo_setup_data('dataDir', opts.dataDir) ;
   save(opts.imdbPath, '-struct', 'imdb') ;
 end
+fprintf('done\n');
+% --------------------------------------------------------------------
+% Train
+% --------------------------------------------------------------------
+% use train + val split to train
+imdb.images.set(imdb.images.set == 2) = 1;
+
+
+% -------------------------------------------------------------------------
+%  Train
+% -------------------------------------------------------------------------
+
+
+% -------------------------------------------------------------------------
+%   Deploy
+% -------------------------------------------------------------------------
 
 
 
