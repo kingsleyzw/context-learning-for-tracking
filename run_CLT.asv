@@ -99,6 +99,7 @@ for idp = 10: 1: numP
         traj = [traj; rest];
         fprintf('%d:%d\n', idp, idf) ;
         
+        disp_results
     end
     [precision, recall, F1_score] = per_eval(det, traj, idp); % performance evluation
     save(resultPath,'traj');  % save results 
