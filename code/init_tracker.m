@@ -25,15 +25,19 @@ numP     = max(org_det(:, 3)); % number of pedestrian
 vl_setupnn()
 opts.modelPath = fullfile(fileparts(mfilename('fullpath')), ...
 '../..','data', 'models', 'imagenet-vgg-f.mat') ;
-opts.gpu = [] ;
+opts.gpu = [] ;  % empty : using CPU; 1: using GPU of index 1
 net      = load(opts.modelPath) ;
 net = vl_simplenn_tidy(net);
 net = dagnn.DagNN.fromSimpleNN(net, 'canonicalNames', true) ;
 net      = dagnn.DagNN.loadobj(net);
-net.mode = 'test' ; 
+net.mode = 'test' ;
+% Evaluate network either on CPU or GPU.
+if numel(opts.gpu) > 0
+  gpuDevice(opts.gpu) ;
+  net.move('gpu') ;
+end
 
 % init parameters
 flag_single   = 1;   % 0 : multi-cameras; 1 : single-camera
-en_GPU        = 1;   % 0 : using CPU; 1: using GPU
 thresh_single = 2900; % threshold: disappear in single camera
 thresh_multi  = 2900; % threshold: reappear in another camera

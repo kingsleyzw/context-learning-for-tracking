@@ -1,6 +1,9 @@
-function net = yolo_net_init(net,opts)
+function net = yolo_net_init(varargin)
 % -------------------------------------------------------------------------
+opts.modelPath = fullfile('data', 'models');
+opts = vl_argparse(opts, varargin) ;
 
+net = load(opts.modelPath);
 net = vl_simplenn_tidy(net);
 % Skip layers from fc6
 fc6p = cellfun(@(a) strcmp(a.name, 'fc6'), net.layers)==1;

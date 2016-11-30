@@ -11,9 +11,9 @@ opts.expDir  = fullfile(opts.dataDir, 'exp') ;
 opts.imdbPath = fullfile(opts.expDir, 'imdb.mat');
 
 opts.train = struct() ;
-opts.train.gpus = [];
+opts.train.gpus = []; % empty : using CPU; 1: using GPU
 opts.train.batchSize = 64 ;
-opts.train.numSubBatches = 32 ;
+opts.train.numSubBatches = 1 ;
 opts.train.continue = true ;
 opts.train.learningRate = 1e-2 * [ones(1,75), 0.1*ones(1,30), 0.01*ones(1,30)];
 opts.train.numEpochs = 135 ;
@@ -27,8 +27,7 @@ opts = vl_argparse(opts, varargin) ;
 % -------------------------------------------------------------------------
 %    Network initialization
 % -------------------------------------------------------------------------
-net = load(opts.modelPath);
-net = yolo_net_init(net,opts);
+net = yolo_net_init('modelPath',opts.modelPath);
 % -------------------------------------------------------------------------
 %   Database initialization
 % -------------------------------------------------------------------------
