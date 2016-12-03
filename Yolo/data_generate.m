@@ -1,6 +1,5 @@
 function [weight , data] = data_generate(gtbox,gtlabel,imgsize)
-% generate the training data in the Yolo format
-%
+
 location = [0:1:7]/7;
 para.side = 7;
 para.output = 30;
@@ -17,7 +16,7 @@ yolobox = zeros(row,clom);
 yolobox(:,1) = (gtbox(:,1) + gtbox(:,3))/2/imgsize(1);
 yolobox(:,2) = (gtbox(:,2) + gtbox(:,4))/2/imgsize(2);
 yolobox(:,3) = sqrt((gtbox(:,3) - gtbox(:,1))/imgsize(1));
-yolobox(:,4) = sqrt((gtbox(:,4) - gtbox(:,2))/imgsize(1));
+yolobox(:,4) = sqrt((gtbox(:,4) - gtbox(:,2))/imgsize(2));
 
  for k=1:row
     grid_num1 = zeros(para.output,1);
@@ -36,8 +35,8 @@ yolobox(:,4) = sqrt((gtbox(:,4) - gtbox(:,2))/imgsize(1));
     grid_num1(6:9) = yolobox(k,:);
     temp2(:,tag)=grid_num1; % data
  end
-weight = reshape( temp1 , para.output*para.side^2 , 1);
-data = reshape( temp2 , para.output*para.side^2 , 1);
+weight = reshape( temp1 , 1 , 1 , para.output*para.side^2 );
+data = reshape( temp2 ,  1 , 1 , para.output*para.side^2 );
 
 
 
