@@ -19,7 +19,7 @@ classdef yoloLoss < dagnn.Loss
     end
 
     function [derInputs, derParams] = backward(obj, inputs, params, derOutputs)
-      delta = 2 * (inputs{1} - inputs{3});
+      delta = 2* (inputs{1} - inputs{3}) ;
 %       delta = abs(delta) ;
 
       derInputs = {inputs{2} .* delta .* derOutputs{1}, [], []} ;

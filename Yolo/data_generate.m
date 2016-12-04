@@ -13,10 +13,10 @@ temp2=zeros(para.output , para.side^2); % for data
 
 [row,clom]=size(gtbox);
 yolobox = zeros(row,clom);
-yolobox(:,1) = (gtbox(:,1) + gtbox(:,3))/2/imgsize(1);
-yolobox(:,2) = (gtbox(:,2) + gtbox(:,4))/2/imgsize(2);
-yolobox(:,3) = sqrt((gtbox(:,3) - gtbox(:,1))/imgsize(1));
-yolobox(:,4) = sqrt((gtbox(:,4) - gtbox(:,2))/imgsize(2));
+yolobox(:,1) = (gtbox(:,1) + gtbox(:,3))/2/imgsize(2);
+yolobox(:,2) = (gtbox(:,2) + gtbox(:,4))/2/imgsize(1);
+yolobox(:,3) = sqrt((gtbox(:,3) - gtbox(:,1))/imgsize(2));
+yolobox(:,4) = sqrt((gtbox(:,4) - gtbox(:,2))/imgsize(1));
 
  for k=1:row
     grid_num1 = zeros(para.output,1);
