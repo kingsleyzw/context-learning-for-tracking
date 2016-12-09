@@ -23,7 +23,7 @@ net.mode = 'test' ;
 % Mark  predictions as `precious` so they are not optimized away during evaluation.
 net.vars(net.getVarIndex('prediction')).precious = 1 ;
 % Load a test image and candidate bounding boxes.
-im = single(imread('000021.jpg')) ;
+im = single(imread('000001.jpg')) ;
 imageSize = size(im) ;
 imo = im; % keep original image 
 % Resize images and boxes to a size compatible with the network.

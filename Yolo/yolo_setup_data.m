@@ -35,8 +35,7 @@ for thisSet = {'train', 'val', 'test'}
   imdb_.images.size{k} = zeros(numel(imdb_.images.name{k}),2);
   imdb_.boxes.gtbox{k} = cell(size(imdb_.images.name{k}));
   imdb_.boxes.gtlabel{k} = cell(size(imdb_.images.name{k}));
-  imdb_.traindata.weight{k} = cell(size(imdb_.images.name{k}));
-  imdb_.traindata.data{k} = cell(size(imdb_.images.name{k}));
+  imdb_.boxes.truth{k} = cell(size(imdb_.images.name{k}));
   % Load ground truth objects
   for i=1:length(gtids)
     % Read annotation.
@@ -50,8 +49,7 @@ for thisSet = {'train', 'val', 'test'}
       assert(all(BB(:,3)<=rec.imgsize(1)));
       assert(all(BB(:,4)<=rec.imgsize(2)));
       imdb_.boxes.gtlabel{k}{i} = label;
-      [imdb_.traindata.weight{k}{i} , imdb_.traindata.data{k}{i}]=...
-       data_generate(imdb_.boxes.gtbox{k}{i},imdb_.boxes.gtlabel{k}{i},imdb_.images.size{k}(i,:));
+      imdb_.boxes.truth{k}{i} = data_generate(imdb_.boxes.gtbox{k}{i},imdb_.boxes.gtlabel{k}{i},imdb_.images.size{k}(i,:));
     end
   end
 end
@@ -60,8 +58,7 @@ imdb.images.size = vertcat(imdb_.images.size{:}) ;
 imdb.images.set  = vertcat(imdb_.images.set{:}) ;
 imdb.boxes.gtbox = vertcat(imdb_.boxes.gtbox{:}) ;
 imdb.boxes.gtlabel = vertcat(imdb_.boxes.gtlabel{:}) ;
-imdb.traindata.weight = vertcat(imdb_.traindata.weight{:}) ;
-imdb.traindata.data = vertcat(imdb_.traindata.data{:}) ;
+imdb.boxes.truth = vertcat(imdb_.boxes.truth{:}) ;
 % -------------------------------------------------------------------------
 %  Postprocessing
 % -------------------------------------------------------------------------
@@ -71,7 +68,7 @@ imdb.images.set = imdb.images.set(si) ;
 imdb.images.size = imdb.images.size(si,:) ;
 imdb.boxes.gtbox = imdb.boxes.gtbox(si)' ;
 imdb.boxes.gtlabel = imdb.boxes.gtlabel(si) ;
-imdb.traindata.weight = imdb.traindata.weight(si) ;
-imdb.traindata.data = imdb.traindata.data(si) ;
+imdb.boxes.truth = imdb.boxes.truth(si) ;
+
 
 

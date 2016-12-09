@@ -4,16 +4,17 @@ function [net, info] = yolo_train(varargin)
 
 run(fullfile(fileparts(mfilename('fullpath')), ...
   '..','externel', 'matconvnet','matlab', 'vl_setupnn.m')) ;
-
+addpath('bbox_functions');
 opts.dataDir = fullfile(fileparts(mfilename('fullpath')), '..\..','data');
 opts.modelPath = fullfile(opts.dataDir, 'models', 'imagenet-vgg-f.mat');
 opts.expDir  = fullfile(opts.dataDir, 'exp') ;
 opts.imdbPath = fullfile(opts.expDir, 'imdb.mat');
 
 opts.train = struct() ;
-opts.train.gpus = [];
-opts.train.batchSize = 64 ;
-opts.train.numSubBatches = 1 ;
+opts.train.gpus = [1];
+opts.train.batchSize = 128 ;
+opts.train.numSubBatches = 2 ;
+
 opts.train.continue = true ;
 opts.train.learningRate = 1e-2 * [ones(1,75), 0.1*ones(1,30), 0.01*ones(1,30)];
 opts.train.numEpochs = 135 ;
@@ -46,8 +47,9 @@ fprintf('done\n');
 % --------------------------------------------------------------------
 % Train
 % --------------------------------------------------------------------
-% use train + val split to train
+% use train + val + test split to train
 imdb.images.set(imdb.images.set == 2) = 1;
+imdb.images.set(imdb.images.set == 3) = 1;
 % minibatch options
 bopts = net.meta.normalization;
 bopts.useGpu = numel(opts.train.gpus) >  0 ;
@@ -76,27 +78,24 @@ function inputs = getBatch(opts, imdb, batch)
 % --------------------------------------------------------------------
 images = strcat([imdb.imageDir filesep], imdb.images.name(batch)) ;
 ims = vl_imreadjpeg(images,'numThreads',opts.numThreads) ;
-im  = zeros(opts.height, opts.weight , size(ims{1},3),numel(batch),'single');
+im  = zeros(opts.height, opts.width , size(ims{1},3) , numel(batch),'single');
 
-s = size(imdb.traindata.weight{1},3);
-weights = zeros(1,1,s,numel(batch));
-data =  zeros(1,1,s,numel(batch));
+s = size(imdb.boxes.truth{1},3);
+truth = zeros(1,1,s,numel(batch));
 for b=1:numel(batch)
     ims{b} = imresize(ims{b},[opts.height opts.width],'Method',opts.interpolation);
 %     if ~isempty(opts.averageImage)
 %         ims{b} = single(bsxfun(@minus,ims{b},opts.averageImage));       
 %     end
     im(:,:,:,b) = single(ims{b});   
-    weights(:,:,:,b) = imdb.traindata.weight{batch(b)};   
-    data(:,:,:,b) = imdb.traindata.data{batch(b)};
+    truth(:,:,:,b) = imdb.boxes.truth{batch(b)};   
 end
 
 if opts.useGpu > 0
   im = gpuArray(im) ;
-  weights = gpuArray(weights) ;
-  data = gpuArray(data) ;
+  truth = gpuArray(truth) ;
 end
-inputs = {'input', im, 'weight', weights, 'data', data} ;
+inputs = {'input', im, 'truth', truth} ;
 
 % --------------------------------------------------------------------
 function net = yolo_deploy(net)

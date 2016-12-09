@@ -52,7 +52,10 @@ net.params(end).value = zeros(1470,1,'single');
 
 % Add yolo loss layer--how to design
 net.addLayer('loss', dagnn.yoloLoss(), ...
-{'prediction','weight','data'}, 'yololoss',{}) ;
+{'prediction','truth'}, 'yololoss',{}) ;
+
+net.rebuild();
+
 % No decay for bias and set learning rate to 2
 for i=2:2:numel(net.params)
   net.params(i).weightDecay = 0;
